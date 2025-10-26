@@ -16,6 +16,8 @@
 #include "RmlUi/../../Source/Core/Elements/ElementLabel.h"
 #include "RmlUi_Platform_SDL.h"
 
+#include "common/rt64_plume.h"
+
 #include "recomp_ui.h"
 #include "recomp_input.h"
 #include "librecomp/game.hpp"
@@ -162,6 +164,7 @@ class UIState {
     std::unique_ptr<recompui::MenuController> config_menu_controller{};
     std::vector<ContextDetails> shown_contexts{};
 public:
+    SDL_Window* window = nullptr;
     bool mouse_is_active_initialized = false;
     bool mouse_is_active = false;
     bool cont_is_active = false;
@@ -181,6 +184,7 @@ public:
     UIState& operator=(UIState&& rhs) = delete;
 
     UIState(SDL_Window* window, RT64::RenderInterface* interface, RT64::RenderDevice* device) {
+        this->window = window;
         launcher_menu_controller = recompui::create_launcher_menu();
         config_menu_controller = recompui::create_config_menu();
 
@@ -693,12 +697,12 @@ void draw_hook(RT64::RenderCommandList* command_list, RT64::RenderFramebuffer* s
             // Send the event to RmlUi if this type of event is being captured.
             if (is_mouse_input) {
                 if (context_capturing_mouse) {
-                    RmlSDL::InputEventHandler(ui_state->context, cur_event);
+                    RmlSDL::InputEventHandler(ui_state->context, ui_state->window, cur_event);
                 }
             }
             else {
                 if (context_capturing_input) {
-                    RmlSDL::InputEventHandler(ui_state->context, cur_event);
+                    RmlSDL::InputEventHandler(ui_state->context, ui_state->window, cur_event);
                 }
             }
         }

@@ -172,7 +172,7 @@ list(APPEND SOURCES
     ${CMAKE_SOURCE_DIR}/src/game/recomp_api.cpp
     #${CMAKE_SOURCE_DIR}/src/game/recomp_actor_api.cpp
     ${CMAKE_SOURCE_DIR}/src/game/recomp_data_api.cpp
-    #${CMAKE_SOURCE_DIR}/src/game/rom_decompression.cpp
+    ${CMAKE_SOURCE_DIR}/src/game/rom_decompression.cpp
 
     ${CMAKE_SOURCE_DIR}/src/ui/ui_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/ui_state.cpp
@@ -232,6 +232,9 @@ target_include_directories(Mario64Recompiled PRIVATE
     ${CMAKE_SOURCE_DIR}/lib/freetype-windows-binaries/include
     ${CMAKE_SOURCE_DIR}/lib/rt64/src/contrib/nativefiledialog-extended/src/include
     ${CMAKE_SOURCE_DIR}/lib/SlotMap
+    # Fallback to Zelda64Recomp third-party headers if local copies are missing
+    ${CMAKE_SOURCE_DIR}/../Zelda64Recomp/lib/GamepadMotionHelpers
+    ${CMAKE_SOURCE_DIR}/../Zelda64Recomp/lib/SlotMap
     ${CMAKE_BINARY_DIR}/shaders
     ${CMAKE_CURRENT_BINARY_DIR}
 )
@@ -324,6 +327,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     find_package(X11 REQUIRED)
 
     add_compile_definitions("RT64_SDL_WINDOW_VULKAN")
+    add_compile_definitions("SDL_VULKAN_ENABLED")
 
     # Generate icon_bytes.c from the app icon PNG.
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/icon_bytes.c ${CMAKE_CURRENT_BINARY_DIR}/icon_bytes.h
@@ -435,3 +439,6 @@ target_sources(Mario64Recompiled PRIVATE ${GENERATED_NRM_SOURCES})
 target_sources(Mario64Recompiled PRIVATE ${SOURCES})
 
 set_property(TARGET Mario64Recompiled PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+
+# Ensure the RmlUi SDL backend selects SDL2 unless otherwise specified
+target_compile_definitions(Mario64Recompiled PRIVATE RMLUI_SDL_VERSION_MAJOR=2)

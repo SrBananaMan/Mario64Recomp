@@ -1,5 +1,6 @@
 #include <atomic>
 #include <mutex>
+#include <cmath>
 
 #include "ultramodern/ultramodern.hpp"
 #include "recomp.h"
@@ -9,6 +10,14 @@
 #include "SDL.h"
 #include "promptfont.h"
 #include "GamepadMotion.hpp"
+
+// X11 headers (pulled in by SDL on Linux) define a macro named None.
+// This clashes with our enum class members like InputType::None and
+// other identifiers such as ultramodern::input::Device::None.
+// Undefine it here to avoid preprocessor mangling and parse errors.
+#ifdef None
+#undef None
+#endif
 
 constexpr float axis_threshold = 0.5f;
 
