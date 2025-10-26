@@ -62,8 +62,8 @@ struct RmlPushConstants {
 };
 
 struct TextureHandle {
-    std::unique_ptr<RT64::RenderTexture> texture;
-    std::unique_ptr<RT64::RenderDescriptorSet> set;
+    std::unique_ptr<RenderTexture> texture;
+    std::unique_ptr<RenderDescriptorSet> set;
     bool transitioned = false;
 };
 
@@ -89,11 +89,11 @@ struct ImageFromBytes {
 namespace recompui {
 class RmlRenderInterface_RT64_impl : public Rml::RenderInterfaceCompatibility {
     struct DynamicBuffer {
-        std::unique_ptr<RT64::RenderBuffer> buffer_{};
+        std::unique_ptr<RenderBuffer> buffer_{};
         uint32_t size_ = 0;
         uint32_t bytes_used_ = 0;
         uint8_t* mapped_data_ = nullptr;
-        RT64::RenderBufferFlags flags_ = RT64::RenderBufferFlag::NONE;
+        RenderBufferFlags flags_ = RenderBufferFlag::NONE;
     };
 
     static constexpr uint32_t per_frame_descriptor_set = 0;
@@ -102,20 +102,20 @@ class RmlRenderInterface_RT64_impl : public Rml::RenderInterfaceCompatibility {
     static constexpr uint32_t initial_upload_buffer_size = 1024 * 1024;
     static constexpr uint32_t initial_vertex_buffer_size = 512 * sizeof(Rml::Vertex);
     static constexpr uint32_t initial_index_buffer_size = 1024 * sizeof(int);
-    static constexpr RT64::RenderFormat RmlTextureFormat = RT64::RenderFormat::R8G8B8A8_UNORM;
-    static constexpr RT64::RenderFormat RmlTextureFormatBgra = RT64::RenderFormat::B8G8R8A8_UNORM;
-    static constexpr RT64::RenderFormat SwapChainFormat = RT64::RenderFormat::B8G8R8A8_UNORM;
+    static constexpr RenderFormat RmlTextureFormat = RenderFormat::R8G8B8A8_UNORM;
+    static constexpr RenderFormat RmlTextureFormatBgra = RenderFormat::B8G8R8A8_UNORM;
+    static constexpr RenderFormat SwapChainFormat = RenderFormat::B8G8R8A8_UNORM;
     static constexpr uint32_t RmlTextureFormatBytesPerPixel = RenderFormatSize(RmlTextureFormat);
     static_assert(RenderFormatSize(RmlTextureFormatBgra) == RmlTextureFormatBytesPerPixel);
-    RT64::RenderInterface* interface_;
-    RT64::RenderDevice* device_;
+    RenderInterface* interface_;
+    RenderDevice* device_;
     int scissor_x_ = 0;
     int scissor_y_ = 0;
     int scissor_width_ = 0;
     int scissor_height_ = 0;
     int window_width_ = 0;
     int window_height_ = 0;
-    RT64::RenderMultisampling multisampling_ = RT64::RenderMultisampling();
+    RenderMultisampling multisampling_ = RenderMultisampling();
     Rml::Matrix4f projection_mtx_ = Rml::Matrix4f::Identity();
     Rml::Matrix4f transform_ = Rml::Matrix4f::Identity();
     Rml::Matrix4f mvp_ = Rml::Matrix4f::Identity();
@@ -124,46 +124,46 @@ class RmlRenderInterface_RT64_impl : public Rml::RenderInterfaceCompatibility {
     DynamicBuffer upload_buffer_;
     DynamicBuffer vertex_buffer_;
     DynamicBuffer index_buffer_;
-    std::unique_ptr<RT64::RenderSampler> nearestSampler_{};
-    std::unique_ptr<RT64::RenderSampler> linearSampler_{};
-    std::unique_ptr<RT64::RenderShader> vertex_shader_{};
-    std::unique_ptr<RT64::RenderShader> pixel_shader_{};
-    std::unique_ptr<RT64::RenderDescriptorSet> sampler_set_{};
+    std::unique_ptr<RenderSampler> nearestSampler_{};
+    std::unique_ptr<RenderSampler> linearSampler_{};
+    std::unique_ptr<RenderShader> vertex_shader_{};
+    std::unique_ptr<RenderShader> pixel_shader_{};
+    std::unique_ptr<RenderDescriptorSet> sampler_set_{};
     std::unique_ptr<RT64::RenderDescriptorSetBuilder> texture_set_builder_{};
-    std::unique_ptr<RT64::RenderPipelineLayout> layout_{};
-    std::unique_ptr<RT64::RenderPipeline> pipeline_{};
-    std::unique_ptr<RT64::RenderPipeline> pipeline_ms_{};
-    std::unique_ptr<RT64::RenderTexture> screen_texture_ms_{};
-    std::unique_ptr<RT64::RenderTexture> screen_texture_{};
-    std::unique_ptr<RT64::RenderFramebuffer> screen_framebuffer_{};
-    std::unique_ptr<RT64::RenderDescriptorSet> screen_descriptor_set_{};
-    std::unique_ptr<RT64::RenderBuffer> screen_vertex_buffer_{};
-    std::unique_ptr<RT64::RenderCommandQueue> copy_command_queue_{};
-    std::unique_ptr<RT64::RenderCommandList> copy_command_list_{};
-    std::unique_ptr<RT64::RenderBuffer> copy_buffer_{};
-    std::unique_ptr<RT64::RenderCommandFence> copy_command_fence_;
+    std::unique_ptr<RenderPipelineLayout> layout_{};
+    std::unique_ptr<RenderPipeline> pipeline_{};
+    std::unique_ptr<RenderPipeline> pipeline_ms_{};
+    std::unique_ptr<RenderTexture> screen_texture_ms_{};
+    std::unique_ptr<RenderTexture> screen_texture_{};
+    std::unique_ptr<RenderFramebuffer> screen_framebuffer_{};
+    std::unique_ptr<RenderDescriptorSet> screen_descriptor_set_{};
+    std::unique_ptr<RenderBuffer> screen_vertex_buffer_{};
+    std::unique_ptr<RenderCommandQueue> copy_command_queue_{};
+    std::unique_ptr<RenderCommandList> copy_command_list_{};
+    std::unique_ptr<RenderBuffer> copy_buffer_{};
+    std::unique_ptr<RenderCommandFence> copy_command_fence_;
     uint64_t copy_buffer_size_ = 0;
     uint64_t screen_vertex_buffer_size_ = 0;
     uint32_t gTexture_descriptor_index;
-    RT64::RenderInputSlot vertex_slot_{ 0, sizeof(Rml::Vertex) };
-    RT64::RenderCommandList* list_ = nullptr;
+    RenderInputSlot vertex_slot_{ 0, sizeof(Rml::Vertex) };
+    RenderCommandList* list_ = nullptr;
     bool scissor_enabled_ = false;
-    std::vector<std::unique_ptr<RT64::RenderBuffer>> stale_buffers_{};
+    std::vector<std::unique_ptr<RenderBuffer>> stale_buffers_{};
     moodycamel::ConcurrentQueue<ImageFromBytes> image_from_bytes_queue;
     std::unordered_map<std::string, ImageFromBytes> image_from_bytes_map;
 public:
-    RmlRenderInterface_RT64_impl(RT64::RenderInterface* interface, RT64::RenderDevice* device) {
+    RmlRenderInterface_RT64_impl(RenderInterface* interface, RenderDevice* device) {
         interface_ = interface;
         device_ = device;
 
         // Enable 4X MSAA if supported by the device.
-        const RT64::RenderSampleCounts desired_sample_count = RT64::RenderSampleCount::COUNT_8;
+        const RenderSampleCounts desired_sample_count = RenderSampleCount::COUNT_8;
         if (device_->getSampleCountsSupported(SwapChainFormat) & desired_sample_count) {
             multisampling_.sampleCount = desired_sample_count;
         }
 
-        vertex_buffer_.flags_ = RT64::RenderBufferFlag::VERTEX;
-        index_buffer_.flags_ = RT64::RenderBufferFlag::INDEX;
+        vertex_buffer_.flags_ = RenderBufferFlag::VERTEX;
+        index_buffer_.flags_ = RenderBufferFlag::INDEX;
 
         // Create the texture upload buffer, vertex buffer and index buffer
         resize_dynamic_buffer(upload_buffer_, initial_upload_buffer_size, false);
@@ -171,29 +171,29 @@ public:
         resize_dynamic_buffer(index_buffer_, initial_index_buffer_size, false);
 
         // Describe the vertex format
-        std::vector<RT64::RenderInputElement> vertex_elements{};
-        vertex_elements.emplace_back(RT64::RenderInputElement{ "POSITION", 0, 0, RT64::RenderFormat::R32G32_FLOAT, 0, offsetof(Rml::Vertex, position) });
-        vertex_elements.emplace_back(RT64::RenderInputElement{ "COLOR", 0, 1, RT64::RenderFormat::R8G8B8A8_UNORM, 0, offsetof(Rml::Vertex, colour) });
-        vertex_elements.emplace_back(RT64::RenderInputElement{ "TEXCOORD", 0, 2, RT64::RenderFormat::R32G32_FLOAT, 0, offsetof(Rml::Vertex, tex_coord) });
+    std::vector<RenderInputElement> vertex_elements{};
+    vertex_elements.emplace_back(RenderInputElement{ "POSITION", 0, 0, RenderFormat::R32G32_FLOAT, 0, offsetof(Rml::Vertex, position) });
+    vertex_elements.emplace_back(RenderInputElement{ "COLOR", 0, 1, RenderFormat::R8G8B8A8_UNORM, 0, offsetof(Rml::Vertex, colour) });
+    vertex_elements.emplace_back(RenderInputElement{ "TEXCOORD", 0, 2, RenderFormat::R32G32_FLOAT, 0, offsetof(Rml::Vertex, tex_coord) });
 
         // Create a nearest sampler and a linear sampler
-        RT64::RenderSamplerDesc samplerDesc;
-        samplerDesc.minFilter = RT64::RenderFilter::NEAREST;
-        samplerDesc.magFilter = RT64::RenderFilter::NEAREST;
-        samplerDesc.addressU = RT64::RenderTextureAddressMode::CLAMP;
-        samplerDesc.addressV = RT64::RenderTextureAddressMode::CLAMP;
-        samplerDesc.addressW = RT64::RenderTextureAddressMode::CLAMP;
+    RenderSamplerDesc samplerDesc;
+    samplerDesc.minFilter = RenderFilter::NEAREST;
+    samplerDesc.magFilter = RenderFilter::NEAREST;
+    samplerDesc.addressU = RenderTextureAddressMode::CLAMP;
+    samplerDesc.addressV = RenderTextureAddressMode::CLAMP;
+    samplerDesc.addressW = RenderTextureAddressMode::CLAMP;
         nearestSampler_ = device_->createSampler(samplerDesc);
 
-        samplerDesc.minFilter = RT64::RenderFilter::LINEAR;
-        samplerDesc.magFilter = RT64::RenderFilter::LINEAR;
+    samplerDesc.minFilter = RenderFilter::LINEAR;
+    samplerDesc.magFilter = RenderFilter::LINEAR;
         linearSampler_ = device_->createSampler(samplerDesc);
 
         // Create the shaders
-        RT64::RenderShaderFormat shaderFormat = interface_->getCapabilities().shaderFormat;
+    RenderShaderFormat shaderFormat = interface_->getCapabilities().shaderFormat;
 
-        vertex_shader_ = device_->createShader(GET_SHADER_BLOB(InterfaceVS, shaderFormat), GET_SHADER_SIZE(InterfaceVS, shaderFormat), "VSMain", shaderFormat);
-        pixel_shader_ = device_->createShader(GET_SHADER_BLOB(InterfacePS, shaderFormat), GET_SHADER_SIZE(InterfacePS, shaderFormat), "PSMain", shaderFormat);
+    vertex_shader_ = device_->createShader(GET_SHADER_BLOB(InterfaceVS, shaderFormat), GET_SHADER_SIZE(InterfaceVS, shaderFormat), "VSMain", shaderFormat);
+    pixel_shader_ = device_->createShader(GET_SHADER_BLOB(InterfacePS, shaderFormat), GET_SHADER_SIZE(InterfacePS, shaderFormat), "PSMain", shaderFormat);
 
 
         // Create the descriptor set that contains the sampler

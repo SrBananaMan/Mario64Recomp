@@ -552,7 +552,7 @@ void recompui::activate_mouse() {
     ui_state->update_focus(true, false);
 }
 
-void draw_hook(RT64::RenderCommandList* command_list, RT64::RenderFramebuffer* swap_chain_framebuffer) {
+void draw_hook(RenderCommandList* command_list, RenderFramebuffer* swap_chain_framebuffer) {
 
     apply_background_input_mode();
 
@@ -778,7 +778,7 @@ void draw_hook(RT64::RenderCommandList* command_list, RT64::RenderFramebuffer* s
 
         ui_state->context->Update();
         ui_state->context->Render();
-        ui_state->render_interface.end(command_list, swap_chain_framebuffer);
+    ui_state->render_interface.end(command_list, swap_chain_framebuffer);
     }
 }
 

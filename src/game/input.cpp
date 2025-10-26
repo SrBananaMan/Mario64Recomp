@@ -18,6 +18,23 @@
 #ifdef None
 #undef None
 #endif
+#ifdef Success
+#undef Success
+#endif
+#ifdef Status
+#undef Status
+#endif
+#ifdef Always
+#undef Always
+#endif
+
+#include <array>
+#include <unordered_map>
+#include <list>
+#include <filesystem>
+#include <vector>
+#include <string>
+#include <algorithm>
 
 constexpr float axis_threshold = 0.5f;
 
