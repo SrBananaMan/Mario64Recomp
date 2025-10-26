@@ -206,9 +206,9 @@ list(APPEND SOURCES
     ${CMAKE_SOURCE_DIR}/src/ui/elements/ui_text_input.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/elements/ui_toggle.cpp
 
-    # Use RT64-provided RSP; do not build local rsp sources
-    # ${CMAKE_SOURCE_DIR}/rsp/aspMain.cpp
-    # ${CMAKE_SOURCE_DIR}/rsp/njpgdspMain.cpp
+    # Include locally generated RSP microcode implementations for audio and JPEG
+    ${CMAKE_SOURCE_DIR}/rsp/aspMain.cpp
+    ${CMAKE_SOURCE_DIR}/rsp/njpgdspMain.cpp
 
     ${CMAKE_SOURCE_DIR}/lib/RmlUi/Backends/RmlUi_Platform_SDL.cpp
 )
