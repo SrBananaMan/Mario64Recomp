@@ -45,6 +45,8 @@ endif()
 
 set(RT64_STATIC TRUE)
 set(RT64_SDL_WINDOW_VULKAN TRUE)
+# Ensure Plume builds with SDL Vulkan integration so the SDL_Window* overload exists
+set(SDL_VULKAN_ENABLED ON CACHE BOOL "Enable SDL Vulkan integration" FORCE)
 add_compile_definitions(HLSL_CPU)
 
 if (RECOMP_FLATPAK)
@@ -152,6 +154,8 @@ set (SOURCES
     ${CMAKE_SOURCE_DIR}/src/main/main.cpp
     ${CMAKE_SOURCE_DIR}/src/main/support.cpp
     ${CMAKE_SOURCE_DIR}/src/main/register_overlays.cpp
+    ${CMAKE_SOURCE_DIR}/src/main/entrypoint.cpp
+    ${CMAKE_SOURCE_DIR}/src/compat/recompiled_shims.c
 )
 
 if (BUILD_PATCHES)
@@ -170,7 +174,7 @@ list(APPEND SOURCES
     ${CMAKE_SOURCE_DIR}/src/game/debug.cpp
     ${CMAKE_SOURCE_DIR}/src/game/quicksaving.cpp
     ${CMAKE_SOURCE_DIR}/src/game/recomp_api.cpp
-    #${CMAKE_SOURCE_DIR}/src/game/recomp_actor_api.cpp
+    ${CMAKE_SOURCE_DIR}/src/game/recomp_actor_api.cpp
     ${CMAKE_SOURCE_DIR}/src/game/recomp_data_api.cpp
     ${CMAKE_SOURCE_DIR}/src/game/rom_decompression.cpp
 
@@ -206,12 +210,28 @@ list(APPEND SOURCES
     ${CMAKE_SOURCE_DIR}/src/ui/elements/ui_text_input.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/elements/ui_toggle.cpp
 
-    # Include locally generated RSP microcode implementations for audio and JPEG
+    # Include locally generated RSP microcode implementations
+    # Audio microcode is required
     ${CMAKE_SOURCE_DIR}/rsp/aspMain.cpp
     ${CMAKE_SOURCE_DIR}/rsp/njpgdspMain.cpp
-
-    ${CMAKE_SOURCE_DIR}/lib/RmlUi/Backends/RmlUi_Platform_SDL.cpp
+    # JPEG microcode is optional; only include if it exists or explicitly enabled
 )
+
+# Optionally include JPEG RSP microcode if present
+option(BUILD_RSP_JPEG "Build JPEG RSP microcode (requires rsp/njpgdspMain.cpp to be generated)" OFF)
+
+if (BUILD_RSP_JPEG)
+    if (EXISTS ${CMAKE_SOURCE_DIR}/rsp/njpgdspMain.cpp)
+        list(APPEND SOURCES ${CMAKE_SOURCE_DIR}/rsp/njpgdspMain.cpp)
+    else()
+        message(WARNING "BUILD_RSP_JPEG is ON but rsp/njpgdspMain.cpp is missing. Skipping JPEG microcode.")
+    endif()
+else()
+    if (EXISTS ${CMAKE_SOURCE_DIR}/rsp/njpgdspMain.cpp)
+        message(STATUS "Found rsp/njpgdspMain.cpp; to include it in the build set -DBUILD_RSP_JPEG=ON")
+    endif()
+endif()
+list(APPEND SOURCES ${CMAKE_SOURCE_DIR}/lib/RmlUi/Backends/RmlUi_Platform_SDL.cpp)
 
 if (APPLE)
     list(APPEND SOURCES ${CMAKE_SOURCE_DIR}/src/main/support_apple.mm)
@@ -239,6 +259,9 @@ target_include_directories(Mario64Recompiled PRIVATE
     ${CMAKE_BINARY_DIR}/shaders
     ${CMAKE_CURRENT_BINARY_DIR}
 )
+
+# Ensure Vulkan backend is selected and symbols match plume signatures
+target_compile_definitions(Mario64Recompiled PRIVATE SDL_VULKAN_ENABLED)
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8 AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
     target_compile_options(Mario64Recompiled PRIVATE
