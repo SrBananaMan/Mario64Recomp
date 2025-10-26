@@ -26,6 +26,9 @@ BUILD_FUZZERS:BOOL=OFF
 //Build a header-only version
 BUILD_HEADER_ONLY:BOOL=OFF
 
+//Build and include patches pipeline
+BUILD_PATCHES:BOOL=OFF
+
 //Build shared library instead of static
 BUILD_SHARED_LIBS:BOOL=OFF
 
@@ -69,8 +72,8 @@ CMAKE_ASM_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
 // MinSizeRel ...
 CMAKE_BUILD_TYPE:STRING=Release
 
-//CXX compiler
-CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++
+//No help, variable specified on the command line.
+CMAKE_CXX_COMPILER:UNINITIALIZED=clang++
 
 //LLVM archiver
 CMAKE_CXX_COMPILER_AR:FILEPATH=/usr/bin/llvm-ar-18
@@ -96,8 +99,8 @@ CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
 //Flags used by the CXX compiler during RELWITHDEBINFO builds.
 CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
 
-//C compiler
-CMAKE_C_COMPILER:STRING=/usr/bin/clang
+//No help, variable specified on the command line.
+CMAKE_C_COMPILER:UNINITIALIZED=clang
 
 //LLVM archiver
 CMAKE_C_COMPILER_AR:FILEPATH=/usr/bin/llvm-ar-18
@@ -240,7 +243,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=mario64recompiled
+CMAKE_PROJECT_NAME:STATIC=Mario64Recompiled
 
 //Value Computed by CMake
 CMAKE_PROJECT_VERSION:STATIC=1.5.5
@@ -427,6 +430,15 @@ LiveRecomp_SOURCE_DIR:STATIC=/home/gavin/Other/Mario64Recomp/lib/N64ModernRuntim
 
 //Path to a library.
 MATH_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libm.so
+
+//Value Computed by CMake
+Mario64Recompiled_BINARY_DIR:STATIC=/home/gavin/Other/Mario64Recomp/build-cmake
+
+//Value Computed by CMake
+Mario64Recompiled_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+Mario64Recompiled_SOURCE_DIR:STATIC=/home/gavin/Other/Mario64Recomp
 
 //Value Computed by CMake
 N64ModernRuntime_BINARY_DIR:STATIC=/home/gavin/Other/Mario64Recomp/build-cmake/lib/N64ModernRuntime
@@ -1134,15 +1146,6 @@ lunasvg_IS_TOP_LEVEL:STATIC=OFF
 lunasvg_SOURCE_DIR:STATIC=/home/gavin/Other/Mario64Recomp/lib/lunasvg
 
 //Value Computed by CMake
-mario64recompiled_BINARY_DIR:STATIC=/home/gavin/Other/Mario64Recomp/build-cmake
-
-//Value Computed by CMake
-mario64recompiled_IS_TOP_LEVEL:STATIC=ON
-
-//Value Computed by CMake
-mario64recompiled_SOURCE_DIR:STATIC=/home/gavin/Other/Mario64Recomp
-
-//Value Computed by CMake
 miniz_BINARY_DIR:STATIC=/home/gavin/Other/Mario64Recomp/build-cmake/lib/N64ModernRuntime/librecomp/miniz
 
 //Value Computed by CMake
@@ -1480,7 +1483,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=31
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=30
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

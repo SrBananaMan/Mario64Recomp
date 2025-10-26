@@ -6,3 +6,27 @@ rom_file_path = "m64.us.z64"
 output_func_path = "RecompiledFuncs"
 
 [patches]
+stubs = [
+	"static_0_803223E0",
+	"static_0_803224A0",
+	"static_0_80322F40",
+	"static_0_803243B0",
+	"static_0_80324610",
+	"static_0_80325D20",
+	"static_0_8032B1F0",
+	"unused_8031E568",
+]
+[[patches.instruction]]
+func = "load_dynlist"
+vram = 0x801A71F0
+value = 0x00000000 # jal -> nop (target 0x803224A0)
+
+[[patches.instruction]]
+func = "load_dynlist"
+vram = 0x801A72CC
+value = 0x00000000 # jal -> nop (target 0x803224A0)
+
+[[patches.instruction]]
+func = "load_dynlist"
+vram = 0x801A7290
+value = 0x00000000 # jal -> nop (target 0x803223E0)

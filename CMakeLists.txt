@@ -28,6 +28,8 @@ endif()
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     option(RECOMP_FLATPAK "Configure the build for Flatpak compatibility." OFF)
 endif()
+# Optionally build patches pipeline (disabled by default for Mario64)
+option(BUILD_PATCHES "Build and include patches pipeline" OFF)
 
 # Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
@@ -87,62 +89,61 @@ file(GLOB FUNC_CXX_SOURCES ${CMAKE_SOURCE_DIR}/RecompiledFuncs/*.cpp)
 
 target_sources(RecompiledFuncs PRIVATE ${FUNC_C_SOURCES} ${FUNC_CXX_SOURCES})
 
-# PatchesLib - Library containing the recompiled output for any custom function patches
-add_library(PatchesLib STATIC)
+if (BUILD_PATCHES)
+    # PatchesLib - Library containing the recompiled output for any custom function patches
+    add_library(PatchesLib STATIC)
 
-target_compile_options(PatchesLib PRIVATE
-    # -Wno-unused-but-set-variable
-    -fno-strict-aliasing
-    -Wno-unused-variable
-    -Wno-implicit-function-declaration
-)
+    target_compile_options(PatchesLib PRIVATE
+        -fno-strict-aliasing
+        -Wno-unused-variable
+        -Wno-implicit-function-declaration
+    )
 
-target_include_directories(PatchesLib PRIVATE
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/lib/N64ModernRuntime/ultramodern/include
-    ${CMAKE_SOURCE_DIR}/lib/N64ModernRuntime/librecomp/include
-    ${CMAKE_SOURCE_DIR}/lib/N64ModernRuntime/N64Recomp/include
-)
+    target_include_directories(PatchesLib PRIVATE
+        ${CMAKE_SOURCE_DIR}/include
+        ${CMAKE_SOURCE_DIR}/lib/N64ModernRuntime/ultramodern/include
+        ${CMAKE_SOURCE_DIR}/lib/N64ModernRuntime/librecomp/include
+        ${CMAKE_SOURCE_DIR}/lib/N64ModernRuntime/N64Recomp/include
+    )
 
-target_sources(PatchesLib PRIVATE
-    ${CMAKE_SOURCE_DIR}/RecompiledPatches/patches.c
-    ${CMAKE_SOURCE_DIR}/RecompiledPatches/patches_bin.c
-)
+    target_sources(PatchesLib PRIVATE
+        ${CMAKE_SOURCE_DIR}/RecompiledPatches/patches.c
+        ${CMAKE_SOURCE_DIR}/RecompiledPatches/patches_bin.c
+    )
 
-set_source_files_properties(${CMAKE_SOURCE_DIR}/RecompiledPatches/patches.c PROPERTIES COMPILE_FLAGS -fno-strict-aliasing)
+    set_source_files_properties(${CMAKE_SOURCE_DIR}/RecompiledPatches/patches.c PROPERTIES COMPILE_FLAGS -fno-strict-aliasing)
 
-# Build patches elf
-if(NOT DEFINED PATCHES_C_COMPILER)
-    set(PATCHES_C_COMPILER clang)
+    if(NOT DEFINED PATCHES_C_COMPILER)
+        set(PATCHES_C_COMPILER clang)
+    endif()
+
+    if(NOT DEFINED PATCHES_LD)
+        set(PATCHES_LD ld.lld)
+    endif()
+
+    add_custom_target(PatchesBin
+        COMMAND ${CMAKE_COMMAND} -E env CC=${PATCHES_C_COMPILER} LD=${PATCHES_LD} make
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/patches
+        BYPRODUCTS ${CMAKE_SOURCE_DIR}/patches/patches.elf
+    )
+
+    # Generate patches_bin.c from patches.bin
+    add_custom_command(OUTPUT ${CMAKE_SOURCE_DIR}/RecompiledPatches/patches_bin.c
+        COMMAND file_to_c ${CMAKE_SOURCE_DIR}/patches/patches.bin mm_patches_bin ${CMAKE_SOURCE_DIR}/RecompiledPatches/patches_bin.c ${CMAKE_SOURCE_DIR}/RecompiledPatches/patches_bin.h
+        DEPENDS ${CMAKE_SOURCE_DIR}/patches/patches.bin
+    )
+
+    # Recompile patches elf into patches.c and patches.bin
+    add_custom_command(OUTPUT
+                           ${CMAKE_SOURCE_DIR}/patches/patches.bin
+                           ${CMAKE_SOURCE_DIR}/RecompiledPatches/patches.c
+                           ${CMAKE_SOURCE_DIR}/RecompiledPatches/recomp_overlays.inl
+                           ${CMAKE_SOURCE_DIR}/RecompiledPatches/funcs.h
+                       COMMAND ./N64Recomp patches.toml
+                       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                       DEPENDS ${CMAKE_SOURCE_DIR}/patches/patches.elf
+    )
 endif()
-
-if(NOT DEFINED PATCHES_LD)
-    set(PATCHES_LD ld.lld)
-endif()
-
-add_custom_target(PatchesBin
-    COMMAND ${CMAKE_COMMAND} -E env CC=${PATCHES_C_COMPILER} LD=${PATCHES_LD} make
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/patches
-    BYPRODUCTS ${CMAKE_SOURCE_DIR}/patches/patches.elf
-)
-
-# Generate patches_bin.c from patches.bin
-add_custom_command(OUTPUT ${CMAKE_SOURCE_DIR}/RecompiledPatches/patches_bin.c
-    COMMAND file_to_c ${CMAKE_SOURCE_DIR}/patches/patches.bin mm_patches_bin ${CMAKE_SOURCE_DIR}/RecompiledPatches/patches_bin.c ${CMAKE_SOURCE_DIR}/RecompiledPatches/patches_bin.h
-    DEPENDS ${CMAKE_SOURCE_DIR}/patches/patches.bin
-)
-
-# Recompile patches elf into patches.c and patches.bin
-add_custom_command(OUTPUT
-                       ${CMAKE_SOURCE_DIR}/patches/patches.bin
-                       ${CMAKE_SOURCE_DIR}/RecompiledPatches/patches.c
-                       ${CMAKE_SOURCE_DIR}/RecompiledPatches/recomp_overlays.inl
-                       ${CMAKE_SOURCE_DIR}/RecompiledPatches/funcs.h
-                   # TODO: Look into why modifying patches requires two builds to take
-                   COMMAND ./N64Recomp patches.toml
-                   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                   DEPENDS ${CMAKE_SOURCE_DIR}/patches/patches.elf
-)
 
 # Main executable
 add_executable(Mario64Recompiled)
@@ -151,7 +152,15 @@ set (SOURCES
     ${CMAKE_SOURCE_DIR}/src/main/main.cpp
     ${CMAKE_SOURCE_DIR}/src/main/support.cpp
     ${CMAKE_SOURCE_DIR}/src/main/register_overlays.cpp
-    ${CMAKE_SOURCE_DIR}/src/main/register_patches.cpp
+)
+
+if (BUILD_PATCHES)
+    list(APPEND SOURCES ${CMAKE_SOURCE_DIR}/src/main/register_patches.cpp)
+else()
+    list(APPEND SOURCES ${CMAKE_SOURCE_DIR}/src/main/register_patches_stub.cpp)
+endif()
+
+list(APPEND SOURCES
     ${CMAKE_SOURCE_DIR}/src/main/rt64_render_context.cpp
 
     ${CMAKE_SOURCE_DIR}/src/game/input.cpp
@@ -353,7 +362,6 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
 endif()
 
 target_link_libraries(Mario64Recompiled PRIVATE
-    PatchesLib
     RecompiledFuncs
     librecomp
     ultramodern
@@ -363,6 +371,10 @@ target_link_libraries(Mario64Recompiled PRIVATE
     nfd
     lunasvg
 )
+
+if (BUILD_PATCHES)
+    target_link_libraries(Mario64Recompiled PRIVATE PatchesLib)
+endif()
 
 # TODO fix the rt64 CMake script so that this doesn't need to be duplicated here
 # For DXC
