@@ -183,7 +183,7 @@ public:
     UIState(UIState&& rhs) = delete;
     UIState& operator=(UIState&& rhs) = delete;
 
-    UIState(SDL_Window* window, RT64::RenderInterface* interface, RT64::RenderDevice* device) {
+    UIState(SDL_Window* window, RenderInterface* interface, RenderDevice* device) {
         this->window = window;
         launcher_menu_controller = recompui::create_launcher_menu();
         config_menu_controller = recompui::create_config_menu();
@@ -450,7 +450,7 @@ inline const std::string read_file_to_string(std::filesystem::path path) {
     return ss.str(); 
 }
 
-void init_hook(RT64::RenderInterface* interface, RT64::RenderDevice* device) {
+void init_hook(RenderInterface* interface, RenderDevice* device) {
 #if defined(__linux__)
     std::locale::global(std::locale::classic());
 #endif

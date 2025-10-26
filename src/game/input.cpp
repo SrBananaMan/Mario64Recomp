@@ -1,5 +1,12 @@
 #include <atomic>
 #include <mutex>
+#include <array>
+#include <vector>
+#include <unordered_map>
+#include <list>
+#include <filesystem>
+#include <string>
+#include <algorithm>
 #include <cmath>
 
 #include "ultramodern/ultramodern.hpp"
@@ -11,10 +18,7 @@
 #include "promptfont.h"
 #include "GamepadMotion.hpp"
 
-// X11 headers (pulled in by SDL on Linux) define a macro named None.
-// This clashes with our enum class members like InputType::None and
-// other identifiers such as ultramodern::input::Device::None.
-// Undefine it here to avoid preprocessor mangling and parse errors.
+// Undefine problematic X11 macros pulled in by SDL headers on Linux.
 #ifdef None
 #undef None
 #endif
@@ -27,14 +31,6 @@
 #ifdef Always
 #undef Always
 #endif
-
-#include <array>
-#include <unordered_map>
-#include <list>
-#include <filesystem>
-#include <vector>
-#include <string>
-#include <algorithm>
 
 constexpr float axis_threshold = 0.5f;
 
@@ -76,7 +72,7 @@ std::atomic<recomp::InputDevice> scanning_device = recomp::InputDevice::COUNT;
 std::atomic<recomp::InputField> scanned_input;
 
 enum class InputType {
-    None = 0, // Using zero for None ensures that default initialized InputFields are unbound.
+    None_ = 0, // Using zero for None ensures that default initialized InputFields are unbound.
     Keyboard,
     Mouse,
     ControllerDigital,
@@ -651,7 +647,7 @@ float recomp::get_input_analog(const recomp::InputField& field) {
     case InputType::Mouse:
         // TODO mouse support
         return 0.0f;
-    case InputType::None:
+    case InputType::None_:
         return false;
     }
 }
@@ -682,7 +678,7 @@ bool recomp::get_input_digital(const recomp::InputField& field) {
     case InputType::Mouse:
         // TODO mouse support
         return false;
-    case InputType::None:
+    case InputType::None_:
         return false;
     }
 }
@@ -921,7 +917,7 @@ std::string controller_axis_to_string(int axis) {
 
 std::string recomp::InputField::to_string() const {
     switch ((InputType)input_type) {
-        case InputType::None:
+    case InputType::None_:
             return "";
         case InputType::ControllerDigital:
             return controller_button_to_string((SDL_GameControllerButton)input_id);

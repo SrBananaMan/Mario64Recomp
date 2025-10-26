@@ -29,23 +29,23 @@
 
 #ifdef _WIN32
 #    define GET_SHADER_BLOB(name, format) \
-        ((format) == RT64::RenderShaderFormat::SPIRV ? name##BlobSPIRV : \
-        (format) == RT64::RenderShaderFormat::DXIL ? name##BlobDXIL : nullptr)
+    ((format) == RenderShaderFormat::SPIRV ? name##BlobSPIRV : \
+    (format) == RenderShaderFormat::DXIL ? name##BlobDXIL : nullptr)
 #    define GET_SHADER_SIZE(name, format) \
-        ((format) == RT64::RenderShaderFormat::SPIRV ? std::size(name##BlobSPIRV) : \
-        (format) == RT64::RenderShaderFormat::DXIL ? std::size(name##BlobDXIL) : 0)
+    ((format) == RenderShaderFormat::SPIRV ? std::size(name##BlobSPIRV) : \
+    (format) == RenderShaderFormat::DXIL ? std::size(name##BlobDXIL) : 0)
 #elif defined(__APPLE__)
 #    define GET_SHADER_BLOB(name, format) \
-((format) == RT64::RenderShaderFormat::SPIRV ? name##BlobSPIRV : \
-(format) == RT64::RenderShaderFormat::METAL ? name##BlobMSL : nullptr)
+((format) == RenderShaderFormat::SPIRV ? name##BlobSPIRV : \
+(format) == RenderShaderFormat::METAL ? name##BlobMSL : nullptr)
 #    define GET_SHADER_SIZE(name, format) \
-((format) == RT64::RenderShaderFormat::SPIRV ? std::size(name##BlobSPIRV) : \
-(format) == RT64::RenderShaderFormat::METAL ? std::size(name##BlobMSL) : 0)
+((format) == RenderShaderFormat::SPIRV ? std::size(name##BlobSPIRV) : \
+(format) == RenderShaderFormat::METAL ? std::size(name##BlobMSL) : 0)
 #else
 #    define GET_SHADER_BLOB(name, format) \
-        ((format) == RT64::RenderShaderFormat::SPIRV ? name##BlobSPIRV : nullptr)
+    ((format) == RenderShaderFormat::SPIRV ? name##BlobSPIRV : nullptr)
 #    define GET_SHADER_SIZE(name, format) \
-        ((format) == RT64::RenderShaderFormat::SPIRV ? std::size(name##BlobSPIRV) : 0)
+    ((format) == RenderShaderFormat::SPIRV ? std::size(name##BlobSPIRV) : 0)
 #endif
 
 // TODO deduplicate from rt64_common.h
@@ -197,7 +197,7 @@ public:
 
 
         // Create the descriptor set that contains the sampler
-        RT64::RenderDescriptorSetBuilder sampler_set_builder{};
+    RT64::RenderDescriptorSetBuilder sampler_set_builder{};
         sampler_set_builder.begin();
         sampler_set_builder.addImmutableSampler(1, linearSampler_.get());
         sampler_set_builder.addConstantBuffer(3, 1); // Workaround D3D12 crash due to an empty RT64 descriptor set
@@ -211,9 +211,9 @@ public:
         texture_set_builder_->end();
 
         // Create the pipeline layout
-        RT64::RenderPipelineLayoutBuilder layout_builder{};
+    RT64::RenderPipelineLayoutBuilder layout_builder{};
         layout_builder.begin(false, true);
-        layout_builder.addPushConstant(0, 0, sizeof(RmlPushConstants), RT64::RenderShaderStageFlag::VERTEX);
+    layout_builder.addPushConstant(0, 0, sizeof(RmlPushConstants), RenderShaderStageFlag::VERTEX);
         // Add the descriptor set for descriptors changed once per frame.
         layout_builder.addDescriptorSet(sampler_set_builder);
         // Add the descriptor set for descriptors changed once per draw.
@@ -222,29 +222,29 @@ public:
         layout_ = layout_builder.create(device_);
 
         // Create the pipeline description
-        RT64::RenderGraphicsPipelineDesc pipeline_desc{};
+    RenderGraphicsPipelineDesc pipeline_desc{};
         // Set up alpha blending for non-premultiplied alpha. RmlUi recommends using premultiplied alpha normally,
         // but that would require preprocessing all input files, which would be difficult for user-provided content (such as mods).
         // This blending setup produces similar results as premultipled alpha but for normal assets as it multiplies during blending and
         // computes the output alpha value the same way that a premultipled alpha blender would.
-        pipeline_desc.renderTargetBlend[0] = RT64::RenderBlendDesc {
+        pipeline_desc.renderTargetBlend[0] = RenderBlendDesc {
             .blendEnabled = true,
-            .srcBlend = RT64::RenderBlend::SRC_ALPHA,
-            .dstBlend = RT64::RenderBlend::INV_SRC_ALPHA,
-            .blendOp = RT64::RenderBlendOperation::ADD,
-            .srcBlendAlpha = RT64::RenderBlend::ONE,
-            .dstBlendAlpha = RT64::RenderBlend::INV_SRC_ALPHA,
-            .blendOpAlpha = RT64::RenderBlendOperation::ADD,
+            .srcBlend = RenderBlend::SRC_ALPHA,
+            .dstBlend = RenderBlend::INV_SRC_ALPHA,
+            .blendOp = RenderBlendOperation::ADD,
+            .srcBlendAlpha = RenderBlend::ONE,
+            .dstBlendAlpha = RenderBlend::INV_SRC_ALPHA,
+            .blendOpAlpha = RenderBlendOperation::ADD,
         };
         pipeline_desc.renderTargetFormat[0] = SwapChainFormat; // TODO: Use whatever format the swap chain was created with.
         pipeline_desc.renderTargetCount = 1;
-        pipeline_desc.cullMode = RT64::RenderCullMode::NONE;
+        pipeline_desc.cullMode = RenderCullMode::NONE;
         pipeline_desc.inputSlots = &vertex_slot_;
         pipeline_desc.inputSlotsCount = 1;
         pipeline_desc.inputElements = vertex_elements.data();
         pipeline_desc.inputElementsCount = uint32_t(vertex_elements.size());
         pipeline_desc.pipelineLayout = layout_.get();
-        pipeline_desc.primitiveTopology = RT64::RenderPrimitiveTopology::TRIANGLE_LIST;
+        pipeline_desc.primitiveTopology = RenderPrimitiveTopology::TRIANGLE_LIST;
         pipeline_desc.vertexShader = vertex_shader_.get();
         pipeline_desc.pixelShader = pixel_shader_.get();
 
@@ -255,12 +255,12 @@ public:
             pipeline_ms_ = device_->createGraphicsPipeline(pipeline_desc);
 
             // Create the descriptor set for the screen drawer.
-            RT64::RenderDescriptorRange screen_descriptor_range(RT64::RenderDescriptorRangeType::TEXTURE, 2, 1);
-            screen_descriptor_set_ = device_->createDescriptorSet(RT64::RenderDescriptorSetDesc(&screen_descriptor_range, 1));
+            RenderDescriptorRange screen_descriptor_range(RenderDescriptorRangeType::TEXTURE, 2, 1);
+            screen_descriptor_set_ = device_->createDescriptorSet(RenderDescriptorSetDesc(&screen_descriptor_range, 1));
 
             // Create vertex buffer for the screen drawer (full-screen triangle).
             screen_vertex_buffer_size_ = sizeof(Rml::Vertex) * 3;
-            screen_vertex_buffer_ = device_->createBuffer(RT64::RenderBufferDesc::VertexBuffer(screen_vertex_buffer_size_, RT64::RenderHeapType::UPLOAD));
+            screen_vertex_buffer_ = device_->createBuffer(RenderBufferDesc::VertexBuffer(screen_vertex_buffer_size_, RenderHeapType::UPLOAD));
             Rml::Vertex *vertices = (Rml::Vertex *)(screen_vertex_buffer_->map());
             const Rml::ColourbPremultiplied white(255, 255, 255, 255);
             vertices[0] = Rml::Vertex{ Rml::Vector2f(-1.0f, 1.0f), white, Rml::Vector2f(0.0f, 0.0f) };
@@ -269,8 +269,8 @@ public:
             screen_vertex_buffer_->unmap();
         }
 
-        copy_command_queue_ = device->createCommandQueue(RT64::RenderCommandListType::COPY);
-        copy_command_list_ = copy_command_queue_->createCommandList(RT64::RenderCommandListType::COPY);
+    copy_command_queue_ = device->createCommandQueue(RenderCommandListType::COPY);
+    copy_command_list_ = copy_command_queue_->createCommandList();
         copy_command_fence_ = device->createCommandFence();
     }
 
@@ -298,7 +298,7 @@ public:
         }
 
         // Create the new buffer, update the size and map it.
-        dynamic_buffer.buffer_ = device_->createBuffer(RT64::RenderBufferDesc::UploadBuffer(new_size, dynamic_buffer.flags_));
+    dynamic_buffer.buffer_ = device_->createBuffer(RenderBufferDesc::UploadBuffer(new_size, dynamic_buffer.flags_));
         dynamic_buffer.size_ = new_size;
         dynamic_buffer.bytes_used_ = 0;
 
@@ -368,27 +368,27 @@ public:
         memcpy(vertex_buffer_.mapped_data_ + vertex_buffer_offset, vertices, vert_size_bytes);
         memcpy(index_buffer_.mapped_data_ + index_buffer_offset, indices, index_size_bytes);
 
-        list_->setViewports(RT64::RenderViewport{ 0, 0, float(window_width_), float(window_height_) });
+    list_->setViewports(RenderViewport{ 0, 0, float(window_width_), float(window_height_) });
         if (scissor_enabled_) {
-            list_->setScissors(RT64::RenderRect{
+            list_->setScissors(RenderRect{
                 scissor_x_,
                 scissor_y_,
                 (scissor_width_ + scissor_x_),
                 (scissor_height_ + scissor_y_) });
         }
         else {
-            list_->setScissors(RT64::RenderRect{ 0, 0, window_width_, window_height_ });
+            list_->setScissors(RenderRect{ 0, 0, window_width_, window_height_ });
         }
 
-        RT64::RenderIndexBufferView index_view{index_buffer_.buffer_->at(index_buffer_offset), index_size_bytes, RT64::RenderFormat::R32_UINT};
+    RenderIndexBufferView index_view{index_buffer_.buffer_->at(index_buffer_offset), index_size_bytes, RenderFormat::R32_UINT};
         list_->setIndexBuffer(&index_view);
-        RT64::RenderVertexBufferView vertex_view{vertex_buffer_.buffer_->at(vertex_buffer_offset), vert_size_bytes};
+    RenderVertexBufferView vertex_view{vertex_buffer_.buffer_->at(vertex_buffer_offset), vert_size_bytes};
         list_->setVertexBuffers(0, &vertex_view, 1, &vertex_slot_);
 
         TextureHandle &texture_handle = textures_.at(texture);
         if (!texture_handle.transitioned) {
             // Prepare the texture for being read from a pixel shader.
-            list_->barriers(RT64::RenderBarrierStage::GRAPHICS, RT64::RenderTextureBarrier(texture_handle.texture.get(), RT64::RenderTextureLayout::SHADER_READ));
+            list_->barriers(RenderBarrierStage::GRAPHICS, RenderTextureBarrier(texture_handle.texture.get(), RenderTextureLayout::SHADER_READ));
             texture_handle.transitioned = true;
         }
 
@@ -428,7 +428,7 @@ public:
         }
         
         RT64::Texture* texture = nullptr;
-        std::unique_ptr<RT64::RenderBuffer> texture_buffer;
+    std::unique_ptr<RenderBuffer> texture_buffer;
         ImageFromBytes& img = it->second;
         copy_command_list_->begin();
 
@@ -463,8 +463,8 @@ public:
         texture_dimensions.x = texture->width;
         texture_dimensions.y = texture->height;
 
-        std::unique_ptr<RT64::RenderDescriptorSet> set = texture_set_builder_->create(device_);
-        set->setTexture(gTexture_descriptor_index, texture->texture.get(), RT64::RenderTextureLayout::SHADER_READ);
+    std::unique_ptr<RenderDescriptorSet> set = texture_set_builder_->create(device_);
+    set->setTexture(gTexture_descriptor_index, texture->texture.get(), RenderTextureLayout::SHADER_READ);
         textures_.emplace(texture_handle, TextureHandle{ std::move(texture->texture), std::move(set), false });
         delete texture;
 
@@ -482,8 +482,8 @@ public:
     }
 
     bool create_texture(Rml::TextureHandle texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions, bool flip_y = false, bool bgra = false) {
-        std::unique_ptr<RT64::RenderTexture> texture =
-            device_->createTexture(RT64::RenderTextureDesc::Texture2D(source_dimensions.x, source_dimensions.y, 1, bgra ? RmlTextureFormatBgra : RmlTextureFormat));
+        std::unique_ptr<RenderTexture> texture =
+            device_->createTexture(RenderTextureDesc::Texture2D(source_dimensions.x, source_dimensions.y, 1, bgra ? RmlTextureFormatBgra : RmlTextureFormat));
 
         if (texture != nullptr) {
             uint32_t image_size_bytes = source_dimensions.x * source_dimensions.y * RmlTextureFormatBytesPerPixel;
@@ -500,7 +500,7 @@ public:
             // Allocate room in the upload buffer for the uploaded data.
             if (uploaded_size_bytes > copy_buffer_size_) {
                 copy_buffer_size_ = (uploaded_size_bytes * 3) / 2;
-                copy_buffer_ = device_->createBuffer(RT64::RenderBufferDesc::UploadBuffer(copy_buffer_size_));
+                copy_buffer_ = device_->createBuffer(RenderBufferDesc::UploadBuffer(copy_buffer_size_));
             }
 
             // Copy the source data into the upload buffer.
@@ -535,12 +535,12 @@ public:
             copy_command_list_->begin();
 
             // Prepare the texture to be a destination for copying.
-            copy_command_list_->barriers(RT64::RenderBarrierStage::COPY, RT64::RenderTextureBarrier(texture.get(), RT64::RenderTextureLayout::COPY_DEST));
+            copy_command_list_->barriers(RenderBarrierStage::COPY, RenderTextureBarrier(texture.get(), RenderTextureLayout::COPY_DEST));
             
             // Copy the upload buffer into the texture.
             copy_command_list_->copyTextureRegion(
-                RT64::RenderTextureCopyLocation::Subresource(texture.get()),
-                RT64::RenderTextureCopyLocation::PlacedFootprint(copy_buffer_.get(), RmlTextureFormat, source_dimensions.x, source_dimensions.y, 1, row_width));
+                RenderTextureCopyLocation::Subresource(texture.get()),
+                RenderTextureCopyLocation::PlacedFootprint(copy_buffer_.get(), RmlTextureFormat, source_dimensions.x, source_dimensions.y, 1, row_width));
             
             // End the command list, execute it and wait.
             copy_command_list_->end();
@@ -548,9 +548,9 @@ public:
             copy_command_queue_->waitForCommandFence(copy_command_fence_.get());
 
             // Create a descriptor set with this texture in it.
-            std::unique_ptr<RT64::RenderDescriptorSet> set = texture_set_builder_->create(device_);
+            std::unique_ptr<RenderDescriptorSet> set = texture_set_builder_->create(device_);
 
-            set->setTexture(gTexture_descriptor_index, texture.get(), RT64::RenderTextureLayout::SHADER_READ);
+            set->setTexture(gTexture_descriptor_index, texture.get(), RenderTextureLayout::SHADER_READ);
 
             textures_.emplace(texture_handle, TextureHandle{ std::move(texture), std::move(set), false });
 
@@ -576,17 +576,17 @@ public:
         mvp_ = projection_mtx_ * transform_;
     }
 
-    void start(RT64::RenderCommandList* list, int image_width, int image_height) {
+    void start(RenderCommandList* list, int image_width, int image_height) {
         list_ = list;
 
         if (multisampling_.sampleCount > 1) {
             if (window_width_ != image_width || window_height_ != image_height) {
                 screen_framebuffer_.reset();
-                screen_texture_ = device_->createTexture(RT64::RenderTextureDesc::ColorTarget(image_width, image_height, SwapChainFormat));
-                screen_texture_ms_ = device_->createTexture(RT64::RenderTextureDesc::ColorTarget(image_width, image_height, SwapChainFormat, multisampling_));
-                const RT64::RenderTexture *color_attachment = screen_texture_ms_.get();
-                screen_framebuffer_ = device_->createFramebuffer(RT64::RenderFramebufferDesc(&color_attachment, 1));
-                screen_descriptor_set_->setTexture(0, screen_texture_.get(), RT64::RenderTextureLayout::SHADER_READ);
+                screen_texture_ = device_->createTexture(RenderTextureDesc::ColorTarget(image_width, image_height, SwapChainFormat));
+                screen_texture_ms_ = device_->createTexture(RenderTextureDesc::ColorTarget(image_width, image_height, SwapChainFormat, multisampling_));
+                const RenderTexture *color_attachment = screen_texture_ms_.get();
+                screen_framebuffer_ = device_->createFramebuffer(RenderFramebufferDesc(&color_attachment, 1));
+                screen_descriptor_set_->setTexture(0, screen_texture_.get(), RenderTextureLayout::SHADER_READ);
             }
 
             list_->setPipeline(pipeline_ms_.get());
@@ -616,30 +616,30 @@ public:
 
         // Set an internal texture as the render target if MSAA is enabled.
         if (multisampling_.sampleCount > 1) {
-            list->barriers(RT64::RenderBarrierStage::GRAPHICS, RT64::RenderTextureBarrier(screen_texture_ms_.get(), RT64::RenderTextureLayout::COLOR_WRITE));
+            list->barriers(RenderBarrierStage::GRAPHICS, RenderTextureBarrier(screen_texture_ms_.get(), RenderTextureLayout::COLOR_WRITE));
             list->setFramebuffer(screen_framebuffer_.get());
-            list->clearColor(0, RT64::RenderColor(0.0f, 0.0f, 0.0f, 0.0f));
+            list->clearColor(0, RenderColor(0.0f, 0.0f, 0.0f, 0.0f));
         }
     }
 
-    void end(RT64::RenderCommandList* list, RT64::RenderFramebuffer* framebuffer) {
+    void end(RenderCommandList* list, RenderFramebuffer* framebuffer) {
         // Draw the texture were rendered the UI in to the swap chain framebuffer if MSAA is enabled.
         if (multisampling_.sampleCount > 1) {
-            RT64::RenderTextureBarrier before_resolve_barriers[] = {
-                RT64::RenderTextureBarrier(screen_texture_ms_.get(), RT64::RenderTextureLayout::RESOLVE_SOURCE),
-                RT64::RenderTextureBarrier(screen_texture_.get(), RT64::RenderTextureLayout::RESOLVE_DEST)
+            RenderTextureBarrier before_resolve_barriers[] = {
+                RenderTextureBarrier(screen_texture_ms_.get(), RenderTextureLayout::RESOLVE_SOURCE),
+                RenderTextureBarrier(screen_texture_.get(), RenderTextureLayout::RESOLVE_DEST)
             };
 
-            list->barriers(RT64::RenderBarrierStage::COPY, before_resolve_barriers, uint32_t(std::size(before_resolve_barriers)));
+            list->barriers(RenderBarrierStage::COPY, before_resolve_barriers, uint32_t(std::size(before_resolve_barriers)));
             list->resolveTexture(screen_texture_.get(), screen_texture_ms_.get());
-            list->barriers(RT64::RenderBarrierStage::GRAPHICS, RT64::RenderTextureBarrier(screen_texture_.get(), RT64::RenderTextureLayout::SHADER_READ));
+            list->barriers(RenderBarrierStage::GRAPHICS, RenderTextureBarrier(screen_texture_.get(), RenderTextureLayout::SHADER_READ));
             list->setFramebuffer(framebuffer);
             list->setPipeline(pipeline_.get());
             list->setGraphicsPipelineLayout(layout_.get());
             list->setGraphicsDescriptorSet(sampler_set_.get(), 0);
             list->setGraphicsDescriptorSet(screen_descriptor_set_.get(), 1);
-            list->setScissors(RT64::RenderRect{ 0, 0, window_width_, window_height_ });
-            RT64::RenderVertexBufferView vertex_view(screen_vertex_buffer_.get(), screen_vertex_buffer_size_);
+            list->setScissors(RenderRect{ 0, 0, window_width_, window_height_ });
+            RenderVertexBufferView vertex_view(screen_vertex_buffer_.get(), screen_vertex_buffer_size_);
             list->setVertexBuffers(0, &vertex_view, 1, &vertex_slot_);
 
             RmlPushConstants constants{
@@ -685,7 +685,7 @@ void recompui::RmlRenderInterface_RT64::reset() {
     impl.reset();
 }
 
-void recompui::RmlRenderInterface_RT64::init(RT64::RenderInterface* interface, RT64::RenderDevice* device) {
+void recompui::RmlRenderInterface_RT64::init(RenderInterface* interface, RenderDevice* device) {
     impl = std::make_unique<RmlRenderInterface_RT64_impl>(interface, device);
 }
 
@@ -696,13 +696,13 @@ Rml::RenderInterface* recompui::RmlRenderInterface_RT64::get_rml_interface() {
     return nullptr;
 }
 
-void recompui::RmlRenderInterface_RT64::start(RT64::RenderCommandList* list, int image_width, int image_height) {
+void recompui::RmlRenderInterface_RT64::start(RenderCommandList* list, int image_width, int image_height) {
     assert(static_cast<bool>(impl));
 
     impl->start(list, image_width, image_height);
 }
 
-void recompui::RmlRenderInterface_RT64::end(RT64::RenderCommandList* list, RT64::RenderFramebuffer* framebuffer) {
+void recompui::RmlRenderInterface_RT64::end(RenderCommandList* list, RenderFramebuffer* framebuffer) {
     assert(static_cast<bool>(impl));
 
     impl->end(list, framebuffer);

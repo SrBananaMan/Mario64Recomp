@@ -1,6 +1,9 @@
 #include <cassert>
 #include <cstring>
-#include <fstream>
+#include <span>
+#include <vector>
+#include <cstdint>
+#include <algorithm>
 
 #include "zelda_game.h"
 
