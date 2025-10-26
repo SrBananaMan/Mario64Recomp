@@ -1,0 +1,11 @@
+
+
+[input]
+symbols_file_path = "Mario64RecompSyms/m64.syms.toml"
+rom_file_path = "m64.us.z64"
+output_func_path = "RecompiledFuncs"
+
+[patches]
+ignored = [
+    "static_0_80322F40"
+]

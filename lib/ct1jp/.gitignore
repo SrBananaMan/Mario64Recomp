@@ -1,0 +1,34 @@
+# Cache files
+__pycache__/
+.pyc
+.DS_Store
+.splache
+
+# Project-specific ignores
+*.bin
+*.ld
+*.o
+*.z64
+asm/
+assets/
+build/
+expected/
+# include/mod.h
+tools/gcc_2.7.2/
+.vscode/configurationCache.log
+.vscode/dryrun.log
+.vscode/targets.log
+.vscode/snips.code-snippets
+tools/n64crc/n64crc.exe
+src/mod/
+tools/cli.ini
+
+# Tool artifacts
+--no-check-sections
+.ninja_deps
+.ninja_log
+*.ninja
+undefined_funcs_auto.txt
+undefined_syms_auto.txt
+ctx.c
+include/ld_addrs.h

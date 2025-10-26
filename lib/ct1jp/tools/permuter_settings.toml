@@ -1,0 +1,14 @@
+compiler_command = "tools/ido_5.3/usr/lib/cc -c -G 0 -fullwarn -verbose -Xcpluscomm -signed -nostdinc -non_shared -Wab,-r4300_mul -D_LANGUAGE_C -DF3DEX_GBI -DNDEBUG -woff 649,838 -I. -Iinclude -Iinclude/PR -Iassets -Isrc -mips2 -O2"
+assembler_command = "mips-linux-gnu-as -EB -march=vr4300 -mtune=vr4300 -Iinclude"
+compiler_type = "ido"
+
+[preserve_macros]
+"gs?[DS]P.*" = "void"
+OVERRIDE_FLAG_CHECK = "int"
+OS_K0_TO_PHYSICAL = "int"
+"G_.*" = "int"
+"TEXEL.*" = "int"
+PRIMITIVE = "int"
+
+[decompme.compilers]
+"tools/ido_5.3/usr/lib/cc" = "ido_5.3"
