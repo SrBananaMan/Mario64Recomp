@@ -1,19 +1,10 @@
-# Map the audio microcode starting at IMEM 0x04000000 so that calls to lower addresses (e.g., 0x05D0) are included.
-# Original region was at 0x04001080 with size 0xE20 at ROM offset 0xCAAC0.
-# Shift start down by 0x1080 and extend size by 0x1080 to cover 0x0000..0x1EA0.
-text_offset = 0xC9A40
-text_size = 0x2000
-text_address = 0x04000000
+# Use the audio microcode region as stored in the ROM.
+# IMEM start address 0x04001080, size 0xE20, at ROM offset 0xCAAC0.
+text_offset = 0xE7740
+text_size = 0x0820
+text_address = 0x04001080
 rom_file_path = "m64.us.z64"
 output_file_path = "rsp/aspMain.cpp"
 output_function_name = "aspMain"
 
-extra_indirect_branch_targets = [
-	# Existing targets discovered during initial pass
-	0x1118, 0x1470, 0x11DC, 0x1B38, 0x1214, 0x187C, 0x1254, 0x12D0,
-	0x12EC, 0x1328, 0x140C, 0x1294, 0x1E24, 0x138C, 0x170C, 0x144C,
-	# Additional targets required to resolve undefined labels seen during compile
-	0x0008, 0x016C, 0x01E0, 0x0258, 0x027C, 0x0320, 0x0348, 0x03DC,
-	0x04C4, 0x054C, 0x05D0, 0x0660, 0x06D4, 0x0964, 0x09A8, 0x0CA8,
-	0x0CF8, 0x0F08, 0x1F04, 0x1F20, 0x1F50
-]
+extra_indirect_branch_targets = []
