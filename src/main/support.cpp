@@ -50,6 +50,33 @@ namespace zelda64 {
         return get_bundle_resource_directory();
 #elif defined(__linux__) && defined(RECOMP_FLATPAK)
         return "/app/bin";
+#elif defined(__linux__)
+        // Try to resolve a sensible base path on Linux so assets can be found when not run from repo root.
+        std::filesystem::path exec_base;
+        if (char* base = SDL_GetBasePath()) {
+            exec_base = std::filesystem::path(base);
+            SDL_free(base);
+        }
+
+        // Common layouts:
+        //  - <repo>/build-cmake/Mario64Recompiled (exec), assets at <repo>/assets => exec_base/.. 
+        //  - <repo>/Mario64Recompiled (exec), assets at <repo>/assets           => exec_base
+        //  - Fallback: current working directory if it contains assets
+        if (!exec_base.empty()) {
+            if (std::filesystem::exists(exec_base / "../assets")) {
+                return std::filesystem::weakly_canonical(exec_base / "..");
+            }
+            if (std::filesystem::exists(exec_base / "assets")) {
+                return std::filesystem::weakly_canonical(exec_base);
+            }
+        }
+
+        // Fallback to CWD if it contains assets
+        if (std::filesystem::exists(std::filesystem::path("assets"))) {
+            return std::filesystem::current_path();
+        }
+
+        return "";
 #else
         return "";
 #endif

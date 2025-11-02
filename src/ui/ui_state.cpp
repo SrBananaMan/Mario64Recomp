@@ -195,13 +195,14 @@ public:
         launcher_menu_controller->register_events(event_listener_instancer);
         config_menu_controller->register_events(event_listener_instancer);
 
-        Rml::SetSystemInterface(system_interface.get());
-        Rml::SetRenderInterface(render_interface.get_rml_interface());
-        Rml::Factory::RegisterEventListenerInstancer(&event_listener_instancer);
+    Rml::SetSystemInterface(system_interface.get());
+    Rml::SetRenderInterface(render_interface.get_rml_interface());
 
-        recompui::register_custom_elements();
+    // RmlUi must be initialized before registering any instancers or custom elements.
+    Rml::Initialise();
 
-        Rml::Initialise();
+    Rml::Factory::RegisterEventListenerInstancer(&event_listener_instancer);
+    recompui::register_custom_elements();
         
         // Apply the hack to replace RmlUi's default color parser with one that conforms to HTML5 alpha parsing for SASS compatibility
         recompui::apply_color_hack();

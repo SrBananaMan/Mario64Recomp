@@ -45,7 +45,8 @@
 #include "../../patches/sound.h"
 #include "../../patches/misc_funcs.h"
 
-#include "mods/mm_recomp_dpad_builtin.h"
+// Disabled: built-in MM dpad mod is not used for SM64 and the placeholder bytes are not a valid archive on Linux builds.
+// #include "mods/mm_recomp_dpad_builtin.h"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -56,7 +57,7 @@
 
 #include "../../lib/rt64/src/contrib/stb/stb_image.h"
 
-const std::string version_string = "1.2.2";
+const std::string version_string = "0.0.1";
 
 template<typename... Ts>
 void exit_error(const char* str, Ts ...args) {
@@ -144,7 +145,7 @@ ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callbacks_t::
     flags |= SDL_WINDOW_VULKAN;
 #endif
 
-    window = SDL_CreateWindow("Zelda 64: Recompiled", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1600, 960,  flags);
+    window = SDL_CreateWindow("Super Mario 64: Recompiled", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1600, 960,  flags);
 #if defined(__linux__)
     SetImageAsIcon("icons/512.png",window);
     if (ultramodern::renderer::get_graphics_config().wm_option == ultramodern::renderer::WindowMode::Fullscreen) { // TODO: Remove once RT64 gets native fullscreen support on Linux
@@ -350,14 +351,16 @@ gpr get_entrypoint_address();
 // array of supported GameEntry objects
 std::vector<recomp::GameEntry> supported_games = {
     {
-        .rom_hash = 0xEF18B4A9E2386169ULL,
-        .internal_name = "ZELDA MAJORA'S MASK",
-        .game_id = u8"mm.n64.us.1.0",
-        .mod_game_id = "mm",
-        .save_type = recomp::SaveType::Flashram,
-        .is_enabled = false,
-        .decompression_routine = zelda64::decompress_mm,
-        .has_compressed_code = true,
+        // Super Mario 64 (US) xxHash3-64 of the full ROM
+        .rom_hash = 0x8A90DAA33E09A265ULL,
+        // Exact 20-byte internal name from ROM header (0x20..0x33)
+        .internal_name = "SUPER MARIO 64      ",
+        .game_id = u8"m64.us",
+        .mod_game_id = "sm64",
+        .save_type = recomp::SaveType::Eep4k,
+        .is_enabled = true,
+        .decompression_routine = nullptr,
+        .has_compressed_code = false,
         .entrypoint_address = get_entrypoint_address(),
         .entrypoint = recomp_entrypoint,
     },
@@ -643,9 +646,14 @@ int main(int argc, char** argv) {
     reset_audio(48000);
 
     // Source controller mappings file
-    std::u8string controller_db_path = (zelda64::get_program_path() / "recompcontrollerdb.txt").u8string();
-    if (SDL_GameControllerAddMappingsFromFile(reinterpret_cast<const char *>(controller_db_path.c_str())) < 0) {
-        fprintf(stderr, "Failed to load controller mappings: %s\n", SDL_GetError());
+    std::filesystem::path controller_db_fs = zelda64::get_program_path() / "recompcontrollerdb.txt";
+    if (std::filesystem::exists(controller_db_fs)) {
+        std::u8string controller_db_path = controller_db_fs.u8string();
+        if (SDL_GameControllerAddMappingsFromFile(reinterpret_cast<const char *>(controller_db_path.c_str())) < 0) {
+            fprintf(stderr, "Failed to load controller mappings: %s\n", SDL_GetError());
+        }
+    } else {
+        fprintf(stdout, "Controller mappings file not found (recompcontrollerdb.txt). Skipping.\n");
     }
 
     recomp::register_config_path(zelda64::get_app_folder_path());
@@ -655,7 +663,8 @@ int main(int argc, char** argv) {
         recomp::register_game(game);
     }
 
-    recomp::mods::register_embedded_mod("mm_recomp_dpad_builtin", { (const uint8_t*)(mm_recomp_dpad_builtin), std::size(mm_recomp_dpad_builtin)});
+    // Disable auto-registration of the Majora's Mask built-in dpad mod for SM64 to avoid parsing an invalid embedded archive.
+    // recomp::mods::register_embedded_mod("mm_recomp_dpad_builtin", { (const uint8_t*)(mm_recomp_dpad_builtin), std::size(mm_recomp_dpad_builtin)});
 
     REGISTER_FUNC(recomp_get_window_resolution);
     REGISTER_FUNC(recomp_get_target_aspect_ratio);
